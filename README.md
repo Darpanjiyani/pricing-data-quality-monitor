@@ -8,7 +8,7 @@ Each day it:
 - runs 16 checks (SQL and statistical)
 - writes an HTML report and a CSV of every flag
 
-The detection test then reports **recall, precision and false alarms per error type**.
+The detection test then reports **recall, precision and false alarms per error type**. On real data it caught **129 of 130 planted errors (99.2% recall) at 97.7% precision** ([results](#results-on-real-data-run-of-november-23-2026)).
 
 ```
 pdq fetch     ->  SQLite (prices, yields)  ->  pdq check  ->  reports/report.html + issues.csv
@@ -85,7 +85,32 @@ All thresholds live in `config.toml`.
    - **classified:** the flag came from the check meant for that error type
    - **false alarm:** a new flag (not in the baseline) that matches no planted error
 
-On the synthetic demo data the checks catch 140/140 planted errors with about 98% precision. **That number is from made-up data and is not for quoting.** Synthetic errors are easier to see than real ones. Use the numbers from a run on real data.
+### Results on real data (run of November 23, 2026)
+
+Data checked: 29,310 Yahoo price rows for 30 stocks, 13,122 Treasury and 10,692 FRED yield rows, January 2023 to November 2026.
+
+| Measure | Result |
+|---|---|
+| Planted errors caught (recall) | **129 of 130 (99.2%)** |
+| Precision (new flags that were planted errors) | **97.7%** |
+| False alarms | 3 |
+
+| Dataset | Error type | Planted | Caught | Recall |
+|---|---|---|---|---|
+| equity | bad print | 10 | 10 | 100% |
+| equity | duplicate row | 10 | 10 | 100% |
+| equity | invalid OHLC (high/low swapped) | 10 | 10 | 100% |
+| equity | missing day | 10 | 10 | 100% |
+| equity | stale run (4 days each) | 40 | 40 | 100% |
+| equity | unadjusted split | 10 | 10 | 100% |
+| rates | Treasury vs FRED mismatch | 10 | 10 | 100% |
+| rates | decimal slip | 10 | 10 | 100% |
+| rates | missing tenor | 10 | 10 | 100% |
+| rates | yield spike | 10 | 9 | 90% |
+
+Every caught error was also flagged by the check meant for its type. The one miss was a yield spike, most likely on one of the bill tenors FRED doesn't publish (1.5M, 2M or 4M), so the Treasury-vs-FRED check could not see it, and the move stayed under the 40 bp jump limit, the robust z-score limit and the kink limit. The equity cross-source error type is not planted on real data because there is no second live stock vendor.
+
+On the synthetic demo data (`pdq demo`) the checks catch 140/140 planted errors with about 98% precision. Synthetic errors are easier to spot than real ones, so the real-data numbers above are the ones to quote.
 
 ## Project layout
 
