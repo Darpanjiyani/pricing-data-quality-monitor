@@ -43,20 +43,20 @@ The equity cross-source checks (`cross_source_price`, `cross_source_level_shift`
 
 | Check | Data | How it works | Severity |
 |---|---|---|---|
-| `price_validity` | equity | SQL: missing or non-positive prices, high < low, open/close outside the high–low range, negative volume | error |
+| `price_validity` | equity | SQL: missing close, any non-positive price, high < low, open/close outside the high–low range (0.01% rounding tolerance), negative volume | error |
 | `duplicate_row` | equity | SQL: same symbol and date loaded twice | error |
 | `stale_price` | equity | SQL gaps-and-islands with window functions: the same close on 3+ days in a row after the first | warn |
 | `missing_day` | equity | SQL: no row on a date when at least 80% of symbols report, between the symbol's first and last row | error |
-| `bad_print_spike` | equity | Market-adjusted log return with a robust z-score (median/MAD of the previous 60 days) above 6, **and** the next day reverses it | error |
-| `possible_unadjusted_split` | equity | Outlier whose price ratio is within 3% of 2:1, 3:1, 4:1, 5:1, 10:1 or 3:2 (either way) and does not reverse | error |
+| `bad_print_spike` | equity | Market-adjusted log return whose robust z-score (median/MAD of the previous 60 days) is above 6 in either direction, **and** the next day reverses it | error |
+| `possible_unadjusted_split` | equity | Outlier whose raw price ratio (today's close / previous close) is within 3% of 2:1, 3:1, 4:1, 5:1, 10:1 or 3:2 (either way) and does not reverse | error |
 | `return_outlier` | equity | Any other outlier: may be real news, so it needs a person to look | warn |
-| `cross_source_price` | equity | Day-over-day change in the ratio of the two vendors' closes above 2%, and the ratio comes back the next day | warn |
-| `cross_source_level_shift` | equity | Same, but the ratio stays: one vendor applied an adjustment the other did not | warn |
+| `cross_source_price` | equity | Day-over-day change in the ratio of the two vendors' closes above 2%, and the ratio comes back the next day (demo data only: no second live vendor) | warn |
+| `cross_source_level_shift` | equity | Same, but the ratio stays: one vendor applied an adjustment the other did not (demo data only) | warn |
 | `yield_out_of_range` | rates | SQL: yield outside −1% to 25% (catches 4.5 loaded as 45) | error |
-| `missing_tenor` | rates | A tenor blank on a date where it is normally published | error |
-| `yield_spike` | rates | One-day move over 40 bp or robust z over 6, reversed the next day | error |
+| `missing_tenor` | rates | A tenor blank on a publication date, for tenors published on at least 90% of dates between their first and last value | error |
+| `yield_spike` | rates | One-day move over 40 bp, or robust z-score of the daily change above 6 in either direction, reversed the next day | error |
 | `yield_jump` | rates | Same, not reversed: probably a real market move | warn |
-| `curve_kink` | rates | Tenor's gap from the straight line between its neighbours, compared with its usual gap; over 20 bp more than usual | warn |
+| `curve_kink` | rates | Tenor's gap from the straight line between its neighbouring tenors, compared with its median gap over the previous 60 days; over 20 bp more than usual. Interior tenors only (1M and 30Y have one neighbour) | warn |
 | `cross_source_yield` | rates | SQL: Treasury vs FRED for the same tenor and date differ by more than 2 bp | warn |
 | `curve_inversion_change` | rates | 10Y–2Y spread changes sign and holds for 5 days | info |
 
