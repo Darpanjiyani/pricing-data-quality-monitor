@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pricing-data-quality-monitor"
+version = "0.1.0"
+description = "Data quality checks for end-of-day equity prices and the U.S. Treasury yield curve"
+requires-python = ">=3.11"
+dependencies = ["pandas>=2.0", "numpy>=1.24", "matplotlib>=3.7"]
+
+[project.optional-dependencies]
+live = ["yfinance>=0.2.40"]
+dev = ["pytest>=7"]
+
+[project.scripts]
+pdq = "pdq.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
